@@ -27,10 +27,10 @@ graph TD;
 * https://github.com/koo5/iot2/ stores the data points in InfluxDB
 * https://grafana.com/products/cloud/ alerting is used to ping my phone when an emergency is detected.
 
-### MQTT
+#### MQTT
 https://github.com/emqx/blog/blob/main/en/202111/popular-online-public-mqtt-brokers.md
 
-### Grafana Cloud
+#### Grafana Cloud
 Grafana Cloud is super-complex, we need to add support for some easier alerting services, like Twilio, Telegram, which will not probably even integrate through MQTT anyway.
 
 ## Todo
