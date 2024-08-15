@@ -88,10 +88,10 @@ Run the main script with the desired options:
 
 
 ## Screenshots
-[![Screenshot](wiki/imgs/utc2024_08_15_T_12_59_41.842241.png)
-[![Screenshot](wiki/imgs/utc2024_08_15_T_13_01_31.874274.png)
-[![Screenshot](wiki/imgs/utc2024_08_15_T_13_04_09.994267.png)
-[![Screenshot](wiki/imgs/oncall.jpeg)
+![Screenshot](wiki/imgs/utc2024_08_15_T_12_59_41.842241.png)
+![Screenshot](wiki/imgs/utc2024_08_15_T_13_01_31.874274.png)
+![Screenshot](wiki/imgs/utc2024_08_15_T_13_04_09.994267.png)
+![Screenshot](wiki/imgs/oncall.jpeg | width=50)
 
 
 ## License
