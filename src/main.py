@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import glob
 import sys, os, time
 import subprocess
 import re
@@ -52,23 +52,16 @@ def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False
 	pygame.init()
 	w = create_window()
 
-	rootdirs = [path]
 	allfiles = {}
 
 	while True:
 
-		# print('list dirs and files...')
-		for dir in rootdirs:
-			# print(dir)
-			for root, dirs, files in os.walk(dir):
-				# print('root, dirs, files: ' + str(root) + ' ' + str(dirs) + ' ' + str(files))
-				for file in files:
-					# print('lll file: ' + str(file))
-					f = Path(os.path.join(root, file))
-					if f.is_file():
-						if str(f) not in allfiles:
-							# print('found new file: ' + str(f))
-							allfiles[str(f)] = f.stat().st_ctime
+		for f in glob.glob(path, recursive=True):
+			f = Path(f)
+			if f.is_file():
+				if str(f) not in allfiles:
+					# print('found new file: ' + str(f))
+					allfiles[str(f)] = f.stat().st_ctime
 
 		# print('sort by ctime...')
 		# allfiles.sort(key=lambda python_sucks: python_sucks[0])
@@ -85,15 +78,16 @@ def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False
 		all = list(allfiles.keys())
 		tail = all[-1000:]
 		latest = all[-lookback:]
-		latest_imgs = [f for f in tail if any([f.endswith(ext) for ext in 'jpg;webp;avif;jpeg;png'.split(';')])]
+		latest_imgs = [f for f in tail if is_img(f)]
 
 		mqtt_pub('loop', 1)
 
 		latests = [f for f in latest if f not in seen]
 
-		if len(latests):
-			print('sleep to accumulate more images ..')
-			time.sleep(5)
+		if ROBOFLOW or CHATGPT:
+			if len(latests):
+				print('sleep to accumulate more images ..')
+				time.sleep(5)
 
 		for f in latests:
 
@@ -105,13 +99,19 @@ def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False
 				'notify-send --expire-time=3000 -i /usr/share/icons/gnome/48x48/status/dialog-information.png "Playing" "' + f + '"'],
 				shell=True)
 			# print(f'play file: {f}')
-			# cmd = f'MPLAYER_VERBOSE=-1 mplayer -msglevel all=0 -noautosub -wid {w} "{f}"'
-			# cmd = f'mpv --really-quiet --wid={w} "{f}"'
-			cmd = f'mpv --vo=x11 --wid={w} "{f}"'
-			# print(cmd)
+			if False:#is_img(f):
+				cmd = f'MPLAYER_VERBOSE=-1 mplayer -vo x11 -msglevel all=0 -noautosub -wid {w} "{f}"'
+			else:
+				# cmd = f'mpv --really-quiet --wid={w} "{f}"'
+				cmd = f'mpv --vo=x11 --wid={w} "{f}"'
+			print(cmd)
 
-			# subprocess.Popen(cmd, shell=True)
-			subprocess.call(cmd, shell=True)
+			if is_img(f):
+				print('popen')
+				subprocess.Popen(cmd, shell=True)
+			else:
+				print('call')
+				subprocess.call(cmd, shell=True)
 
 			# did we indicate (through espeak) that we found/processed the image
 			indicated = False
@@ -213,9 +213,16 @@ def mqtt_pub(topic, value):
 		auth['username'] = os.environ.get('MQTT_USER')
 	if os.environ.get('MQTT_PASS', None):
 		auth['password'] = os.environ.get('MQTT_PASS')
-	publish.single(topic, str(value), hostname=h, port=p, auth=auth, qos=1, retain=True)
-	print(f'Published {value} to {topic} on {h}:{p}')
+	try:
+		publish.single(topic, str(value), hostname=h, port=p, auth=auth, qos=1, retain=True)
+	except Exception as e:
+		print(e)
+	else:
+		print(f'Published {value} to {topic} on {h}:{p}')
 
+
+def is_img(f):
+	return any([f.lower().endswith(ext) for ext in 'jpg;webp;avif;jpeg;png'.split(';')])
 
 if __name__ == '__main__':
 	fire.Fire(main)
