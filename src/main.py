@@ -12,7 +12,7 @@ import fire
 _camera_id = 0
 
 
-def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False, camera_id=0, localization=False):
+def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False, camera_id=0, localization=False, gui=True, notify=True):
 	global _camera_id
 	_camera_id = camera_id
 
@@ -49,8 +49,9 @@ def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False
 
 	seen = []
 
-	pygame.init()
-	w = create_window()
+	if gui:
+		pygame.init()
+		w = create_window()
 
 	allfiles = {}
 
@@ -77,6 +78,9 @@ def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False
 
 		all = list(allfiles.keys())
 		tail = all[-1000:]
+
+		if lookback < 1:
+			raise Exception('lookback must be > 0')
 		latest = all[-lookback:]
 		latest_imgs = [f for f in tail if is_img(f)]
 
@@ -95,23 +99,25 @@ def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False
 
 			print(f'File: {f}')
 
-			subprocess.check_call([
-				'notify-send --expire-time=3000 -i /usr/share/icons/gnome/48x48/status/dialog-information.png "Playing" "' + f + '"'],
-				shell=True)
-			# print(f'play file: {f}')
-			if False:#is_img(f):
-				cmd = f'MPLAYER_VERBOSE=-1 mplayer -vo x11 -msglevel all=0 -noautosub -wid {w} "{f}"'
-			else:
-				# cmd = f'mpv --really-quiet --wid={w} "{f}"'
-				cmd = f'mpv --vo=x11 --wid={w} "{f}"'
-			print(cmd)
+			if notify:
+				subprocess.Popen(
+					'notify-send --expire-time=3000 -i /usr/share/icons/gnome/48x48/status/dialog-information.png "Playing" "' + f + '"',
+					shell=True)
+			if gui:
+				# print(f'play file: {f}')
+				if False:#is_img(f):
+					cmd = f'MPLAYER_VERBOSE=-1 mplayer -vo x11 -msglevel all=0 -noautosub -wid {w} "{f}"'
+				else:
+					# cmd = f'mpv --really-quiet --wid={w} "{f}"'
+					cmd = f'mpv --vo=x11 --wid={w} "{f}"'
+				print(cmd)
 
-			if is_img(f):
-				print('popen')
-				subprocess.Popen(cmd, shell=True)
-			else:
-				print('call')
-				subprocess.call(cmd, shell=True)
+				if is_img(f):
+					print('popen')
+					subprocess.Popen(cmd, shell=True)
+				else:
+					print('call')
+					subprocess.call(cmd, shell=True)
 
 			# did we indicate (through espeak) that we found/processed the image
 			indicated = False
