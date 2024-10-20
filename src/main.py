@@ -24,7 +24,7 @@ def picsort(a, b):
 	if a_dir == b_dir:
 		return (1 if a[0] > b[0] else (-1 if a[0] < b[0] else 0))
 	else:
-		return (1 if av[1] > bv[1] else (-1 if av[1] < bv[1] else 0))
+		return 0
 
 
 def main(path, lookback=5, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False, camera_id=0, localization=False, gui=True, notify=True):
@@ -84,7 +84,7 @@ def main(path, lookback=5, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False,
 		# print('sort by ctime...')
 		# allfiles.sort(key=lambda python_sucks: python_sucks[0])
 		hh = sorted(allfiles.items(), key=lambda x: x[1][1])
-		hh = sorted(allfiles.items(), key=cmp_to_key(picsort))
+		hh = sorted(hh, key=cmp_to_key(picsort))
 		print('sorted')
 		for i in hh:
 			print(i[0], ctime_to_human(i[1][1]))
