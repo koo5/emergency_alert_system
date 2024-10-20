@@ -8,11 +8,26 @@ from pathlib import Path
 import pygame
 import requests
 import fire
+from functools import cmp_to_key
 
 _camera_id = 0
 
 
-def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False, camera_id=0, localization=False, gui=True, notify=True):
+def ctime_to_human(ctime):
+	return time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime(ctime))
+
+def picsort(a, b):
+	av = a[1]
+	bv = b[1]
+	a_dir = av[0]
+	b_dir = bv[0]
+	if a_dir == b_dir:
+		return (1 if a[0] > b[0] else (-1 if a[0] < b[0] else 0))
+	else:
+		return (1 if av[1] > bv[1] else (-1 if av[1] < bv[1] else 0))
+
+
+def main(path, lookback=5, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False, camera_id=0, localization=False, gui=True, notify=True):
 	global _camera_id
 	_camera_id = camera_id
 
@@ -62,14 +77,17 @@ def main(path, lookback=50, speak=True, prompt='', CHATGPT=False, ROBOFLOW=False
 			if f.is_file():
 				if str(f) not in allfiles:
 					# print('found new file: ' + str(f))
-					allfiles[str(f)] = f.stat().st_ctime
+					allfiles[str(f)] = (f.parent, f.stat().st_ctime)
+
+		#print('allfiles:', allfiles)
 
 		# print('sort by ctime...')
 		# allfiles.sort(key=lambda python_sucks: python_sucks[0])
-		hh = sorted(allfiles.items(), key=lambda item: item[1])
-
-		# sort files by name within directories
-		# hh = sorted(hh, key=lambda item: Path(item[0]).name)
+		hh = sorted(allfiles.items(), key=lambda x: x[1][1])
+		hh = sorted(allfiles.items(), key=cmp_to_key(picsort))
+		print('sorted')
+		for i in hh:
+			print(i[0], ctime_to_human(i[1][1]))
 
 		allfiles = dict(hh)
 		# print('len(allfiles):', len(allfiles))
