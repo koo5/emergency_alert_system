@@ -1,6 +1,6 @@
 pip~=24.0
 wheel~=0.43.0
-setuptools~=70.0.0
+setuptools~=80.7.1
 pygame
 requests
 fire
